@@ -26,6 +26,14 @@ const generateAccessTokenAndRefreshToken = async (userId) => {
    }
 
 }
+
+const authCookieOptions = () => ({
+   httpOnly: true,
+   secure: process.env.NODE_ENV === "production",
+   sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+   path: "/",
+})
+
 const registerUser = asyncHandler(async (req, res) => {
    // Steps
    /*     
@@ -169,12 +177,7 @@ const loginUser = asyncHandler(async (req, res) => {
    // sending in secure cookies
    const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
 
-   const options = {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
-   };
+   const options = authCookieOptions();
 
 
    return res.
@@ -208,12 +211,7 @@ const logoutUser = asyncHandler(async (req, res) => {
          new: true
       }
    )
-   const options = {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
-   }
+   const options = authCookieOptions();
    return res
       .status(200)
       .clearCookie("accessToken", options)
@@ -244,12 +242,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
          throw new ApiError(401, "Refresh Token is Expired or used")
       }
 
-      const options = {
-         httpOnly: true,
-         secure: true,
-         sameSite: "none",
-         path: "/",
-      }
+      const options = authCookieOptions();
       const { accessToken, newRefreshToken } = await generateAccessTokenAndRefreshToken(user._id)
 
       return res
